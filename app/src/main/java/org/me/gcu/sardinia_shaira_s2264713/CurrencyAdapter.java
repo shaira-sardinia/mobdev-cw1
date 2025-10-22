@@ -1,0 +1,70 @@
+package org.me.gcu.sardinia_shaira_s2264713;
+
+import android.content.Context;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.BaseAdapter;
+import android.widget.ImageView;
+import android.widget.TextView;
+import java.util.ArrayList;
+
+public class CurrencyAdapter extends BaseAdapter {
+
+    Context context;
+    ArrayList<CurrencyItem> currencyList;
+    LayoutInflater inflater;
+
+    public CurrencyAdapter(Context context, ArrayList<CurrencyItem> currencyList) {
+        this.context = context;
+        this.currencyList = currencyList;
+        inflater = LayoutInflater.from(context);
+    }
+    @Override
+    public int getCount() {
+        return currencyList.size();
+    }
+
+    @Override
+    public Object getItem(int position) {
+        return currencyList.get(position);
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return position;
+    }
+
+    @Override
+    public View getView(int i, View view, ViewGroup viewGroup) {
+        WidgetsHolder holder;
+
+        if(view == null) {
+            view = inflater.inflate(R.layout.currency_item_layout, viewGroup, false);
+
+            holder = new WidgetsHolder();
+            holder.titleText = view.findViewById(R.id.titleTextView);
+            holder.descriptionText = view.findViewById(R.id.descriptionTextView);
+            holder.currencyImage = view.findViewById(R.id.currencyImageView);
+
+            view.setTag(holder);
+        }
+        else {
+            holder = (WidgetsHolder) view.getTag();
+        }
+
+        CurrencyItem currentItem = currencyList.get(i);
+
+        holder.titleText.setText(currentItem.getTitle());
+        holder.descriptionText.setText(currentItem.getDescription());
+        holder.currencyImage.setImageResource(android.R.drawable.ic_menu_gallery);
+
+        return view;
+    }
+
+    static class WidgetsHolder {
+        TextView titleText;
+        TextView descriptionText;
+        ImageView currencyImage;
+    }
+}

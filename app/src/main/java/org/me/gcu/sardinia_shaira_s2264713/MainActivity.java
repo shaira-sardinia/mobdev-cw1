@@ -15,8 +15,10 @@ package org.me.gcu.sardinia_shaira_s2264713;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.TextView;
+import android.widget.ListView;
 import android.view.View.OnClickListener;
 import androidx.appcompat.app.AppCompatActivity;
 
@@ -34,6 +36,8 @@ import java.util.ArrayList;
 
 public class MainActivity extends AppCompatActivity implements OnClickListener {
     private TextView rawDataDisplay;
+    private CurrencyAdapter adapter;
+    private ListView listView;
     private Button startButton;
     private String result;
     private String url1="";
@@ -47,15 +51,15 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Set up the raw links to the graphical components
-        rawDataDisplay = (TextView)findViewById(R.id.rawDataDisplay);
-        startButton = (Button)findViewById(R.id.startButton);
-        startButton.setOnClickListener(this);
-
-        // More Code goes here
         currencyList = new ArrayList<CurrencyItem>();
 
+        // Set up the raw links to the graphical components
+//        rawDataDisplay = (TextView)findViewById(R.id.rawDataDisplay);
+//        currencyListView = (ListView)findViewById(R.id.currencyListView);
 
+        listView = findViewById(R.id.listView);
+        startButton = (Button)findViewById(R.id.startButton);
+        startButton.setOnClickListener(this);
     }
 
     public void onClick(View aview)
@@ -190,7 +194,12 @@ public class MainActivity extends AppCompatActivity implements OnClickListener {
             {
                 public void run() {
                     Log.d("UI thread", "I am the UI thread");
-                    rawDataDisplay.setText(result);
+
+                    Log.d("CurrencyList", "Total items: " + currencyList.size());
+                    adapter = new CurrencyAdapter(MainActivity.this, currencyList);
+                    listView.setAdapter(adapter);
+
+                    Log.d("ListView", "Adapter set!");
                 }
             });
         }
