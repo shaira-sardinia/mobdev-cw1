@@ -13,12 +13,6 @@
             android:textSize="20sp"
             android:text="Welcome!"
             />
-<!--        <Button-->
-<!--            android:id="@+id/startButton"-->
-<!--            android:layout_width="fill_parent"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:text="Press to get data"-->
-<!--            />-->
         <TextView
             android:id="@+id/acknowledgement"
             android:layout_width="fill_parent"
@@ -27,16 +21,9 @@
             android:text="Some welcome text here"
             />
 
-<!--        <TextView-->
-<!--            android:id="@+id/rawDataDisplay"-->
-<!--            android:layout_width="fill_parent"-->
-<!--            android:layout_height="wrap_content"-->
-<!--            android:textSize="20sp"-->
-<!--            android:text="Raw Data is Displayed here"-->
-<!--            />-->
     <ListView
         android:id="@+id/listView"
-        android:layout_width="340dp"
+        android:layout_width="350dp"
         android:layout_height="269dp"
         android:layout_weight="2" />
 </LinearLayout>

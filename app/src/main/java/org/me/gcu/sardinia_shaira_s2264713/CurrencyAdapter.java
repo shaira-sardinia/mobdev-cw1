@@ -55,9 +55,17 @@ public class CurrencyAdapter extends BaseAdapter {
 
         CurrencyItem currentItem = currencyList.get(i);
 
-        holder.titleText.setText(currentItem.getTitle());
-        holder.descriptionText.setText(currentItem.getDescription());
-        holder.currencyImage.setImageResource(android.R.drawable.ic_menu_gallery);
+        holder.titleText.setText(currentItem.getFormattedTitle());
+        holder.descriptionText.setText(currentItem.getFormattedDescription());
+//        holder.currencyImage.setImageResource(android.R.drawable.ic_menu_gallery);
+        holder.descriptionText.setTextColor(currentItem.getRateColor());
+
+        int flagResourceId = currentItem.getFlagResourceId(context);
+        if (flagResourceId != 0) {
+            holder.currencyImage.setImageResource(flagResourceId);
+        } else {
+            holder.currencyImage.setImageResource(R.drawable.unknown);
+        }
 
         return view;
     }
