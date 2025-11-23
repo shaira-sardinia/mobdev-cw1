@@ -1,4 +1,4 @@
-package org.me.gcu.sardinia_shaira_s2264713;
+package org.me.gcu.sardinia_shaira_s2264713.ui;
 
 import android.content.Context;
 import android.view.LayoutInflater;
@@ -7,6 +7,10 @@ import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
+
+import org.me.gcu.sardinia_shaira_s2264713.R;
+import org.me.gcu.sardinia_shaira_s2264713.data.CurrencyItem;
+
 import java.util.ArrayList;
 
 public class CurrencyAdapter extends BaseAdapter {
@@ -20,6 +24,7 @@ public class CurrencyAdapter extends BaseAdapter {
         this.currencyList = currencyList;
         inflater = LayoutInflater.from(context);
     }
+
     @Override
     public int getCount() {
         return currencyList.size();
@@ -35,6 +40,9 @@ public class CurrencyAdapter extends BaseAdapter {
         return position;
     }
 
+    /**
+     * Home screen preview list (non-expandable)
+     */
     @Override
     public View getView(int i, View view, ViewGroup viewGroup) {
         WidgetsHolder holder;
@@ -57,7 +65,6 @@ public class CurrencyAdapter extends BaseAdapter {
 
         holder.titleText.setText(currentItem.getFormattedTitle());
         holder.descriptionText.setText(currentItem.getFormattedDescription());
-//        holder.currencyImage.setImageResource(android.R.drawable.ic_menu_gallery);
         holder.descriptionText.setTextColor(currentItem.getRateColor());
 
         int flagResourceId = currentItem.getFlagResourceId(context);

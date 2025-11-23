@@ -1,6 +1,9 @@
-package org.me.gcu.sardinia_shaira_s2264713;
+package org.me.gcu.sardinia_shaira_s2264713.data;
+
+import static android.content.ContentValues.TAG;
 
 import android.util.Log;
+
 import org.xmlpull.v1.XmlPullParser;
 import org.xmlpull.v1.XmlPullParserException;
 import org.xmlpull.v1.XmlPullParserFactory;
@@ -12,7 +15,6 @@ import java.io.StringReader;
 import java.net.URL;
 import java.net.URLConnection;
 import java.util.ArrayList;
-
 
 public class CurrencyDataFetcher {
     private String urlSource;
@@ -36,9 +38,13 @@ public class CurrencyDataFetcher {
             if (listener != null) {
                 listener.onDataFetched(currencyList);
             }
+        } catch (java.net.UnknownHostException e) {
+            if (listener != null) {
+                listener.onFetchError("NETWORK_ERROR");
+            }
         } catch (Exception e) {
             if (listener != null) {
-                listener.onFetchError(e.getMessage());
+                listener.onFetchError("GENERIC_ERROR");
             }
         }
     }
@@ -53,7 +59,7 @@ public class CurrencyDataFetcher {
 
         String line;
         while ((line = reader.readLine()) != null) {
-            result.append(line); // just modify
+            result.append(line);
         }
         reader.close();
 
@@ -64,6 +70,9 @@ public class CurrencyDataFetcher {
         return xmlData.substring(start, end);
     }
 
+    /**
+     * Method that uses Pull Parser
+     */
     private ArrayList<CurrencyItem> parseXml(String xmlData)
             throws XmlPullParserException, IOException {
 

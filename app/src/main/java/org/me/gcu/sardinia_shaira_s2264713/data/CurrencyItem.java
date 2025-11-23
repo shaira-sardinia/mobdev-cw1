@@ -1,9 +1,11 @@
-package org.me.gcu.sardinia_shaira_s2264713;
+package org.me.gcu.sardinia_shaira_s2264713.data;
 
 import android.annotation.SuppressLint;
 import android.graphics.Color;
 
 import androidx.annotation.NonNull;
+
+import org.me.gcu.sardinia_shaira_s2264713.R;
 
 public class CurrencyItem {
 
@@ -22,6 +24,9 @@ public class CurrencyItem {
     public CurrencyItem() {
     }
 
+    /**
+     * Getter Methods
+     */
     public String getTitle() {
         return title;
     }
@@ -38,6 +43,34 @@ public class CurrencyItem {
         return description;
     }
 
+    public String getSourceCurrencyName() {
+        parseData();
+        return sourceCurrencyName;
+    }
+
+    public String getSourceCurrencyCode() {
+        parseData();
+        return sourceCurrencyCode;
+    }
+
+    public String getTargetCurrencyName() {
+        parseData();
+        return targetCurrencyName;
+    }
+
+    public String getTargetCurrencyCode() {
+        parseData();
+        return targetCurrencyCode;
+    }
+
+    public double getExchangeRate() {
+        parseData();
+        return exchangeRate;
+    }
+
+    /**
+     * Setter Methods
+     */
     public void setTitle(String temp) {
         this.title = temp;
         this.isParsed = false;
@@ -103,34 +136,6 @@ public class CurrencyItem {
     }
 
     /**
-     *  Getter Methods
-     */
-    public String getSourceCurrencyName() {
-        parseData();
-        return sourceCurrencyName;
-    }
-
-    public String getSourceCurrencyCode() {
-        parseData();
-        return sourceCurrencyCode;
-    }
-
-    public String getTargetCurrencyName() {
-        parseData();
-        return targetCurrencyName;
-    }
-
-    public String getTargetCurrencyCode() {
-        parseData();
-        return targetCurrencyCode;
-    }
-
-    public double getExchangeRate() {
-        parseData();
-        return exchangeRate;
-    }
-
-    /**
      *  Formatted String Methods
      */
     public String getFormattedTitle() {
@@ -156,9 +161,6 @@ public class CurrencyItem {
         return String.format("%.4f %s", exchangeRate, targetCurrencyCode);
     }
 
-    /**
-     * Add some colour
-     */
     public int getRateColor() {
         parseData();
 
@@ -173,9 +175,6 @@ public class CurrencyItem {
         }
     }
 
-    /**
-     * Get target currency's flag image dynamically
-     */
     public int getFlagResourceId(android.content.Context context) {
         parseData();
         if (targetCurrencyCode == null || context == null) {
@@ -191,6 +190,43 @@ public class CurrencyItem {
             return 0;
         }
     }
+
+    /**
+     * Search methods
+     */
+    public boolean matchesSearch(String query) {
+        if (query == null || query.trim().isEmpty()) {
+            return true;
+        }
+
+        parseData();
+        String lowerQuery = query.toLowerCase().trim();
+
+        // Check currency codes
+        if (sourceCurrencyCode != null && sourceCurrencyCode.toLowerCase().contains(lowerQuery)) {
+            return true;
+        }
+        if (targetCurrencyCode != null && targetCurrencyCode.toLowerCase().contains(lowerQuery)) {
+            return true;
+        }
+
+        // Check full currency names
+        if (sourceCurrencyName != null && sourceCurrencyName.toLowerCase().contains(lowerQuery)) {
+            return true;
+        }
+        if (targetCurrencyName != null && targetCurrencyName.toLowerCase().contains(lowerQuery)) {
+            return true;
+        }
+
+        return false;
+    }
+
+//    public String getSearchableString() {
+//        parseData();
+//        return String.format(
+//                sourceCurrencyCode, targetCurrencyCode,
+//                sourceCurrencyName, targetCurrencyName).toLowerCase();
+//    }
 
     @NonNull
     @Override
