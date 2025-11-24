@@ -8,9 +8,12 @@ import org.me.gcu.sardinia_shaira_s2264713.utils.ErrorHandler;
 import org.me.gcu.sardinia_shaira_s2264713.viewmodel.CurrencyViewModel;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ListView;
 
 import androidx.activity.OnBackPressedCallback;
@@ -40,9 +43,10 @@ public class MainActivity extends AppCompatActivity
     private View homeLayout;
     private View fragmentContainer;
     private ListView previewListView;
-    private Button viewAllButton;
-    private Button viewSavedButton;
-    private Button convertButton;
+    private ImageView viewAllButton;
+    private ImageView viewSavedButton;
+    private ImageView convertButton;
+    private ImageView navIcon;
 
     private CurrencyAdapter previewAdapter;
 
@@ -60,6 +64,7 @@ public class MainActivity extends AppCompatActivity
         observeData();
         observeErrors();
         setupBackHandler();
+        updateToolbarForHome();
 
         viewModel.startInitialFetchAndAutoUpdate();
     }
@@ -74,12 +79,14 @@ public class MainActivity extends AppCompatActivity
         viewAllButton = findViewById(R.id.viewAllButton);
         viewSavedButton = findViewById(R.id.viewSavedButton);
         convertButton = findViewById(R.id.convertButton);
+        navIcon = findViewById(R.id.nav_icon);
     }
 
     private void setupToolbar() {
         setSupportActionBar(toolbar);
         if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
+            getSupportActionBar().setDisplayShowTitleEnabled(false);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
         }
     }
 
@@ -92,15 +99,30 @@ public class MainActivity extends AppCompatActivity
                 R.string.drawer_close
         );
         drawerLayout.addDrawerListener(drawerToggle);
+        drawerToggle.setDrawerIndicatorEnabled(false);
         drawerToggle.syncState();
 
         navigationView.setNavigationItemSelectedListener(this);
     }
 
     private void setupButtons() {
-        viewAllButton.setOnClickListener(v -> navigateToFragment(new CurrencyListFragment()));
-        viewSavedButton.setOnClickListener(v -> navigateToFragment(new SavedFragment()));
-        convertButton.setOnClickListener(v -> onOpenConversionPage());
+        viewAllButton.setOnClickListener(v -> {
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                navigateToFragment(new CurrencyListFragment());
+            }, 200);
+        });
+
+        viewSavedButton.setOnClickListener(v -> {
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                navigateToFragment(new SavedFragment());
+            }, 200);
+        });
+
+        convertButton.setOnClickListener(v -> {
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                onOpenConversionPage();
+            }, 200);
+        });
     }
 
     private void observeData() {
@@ -144,7 +166,6 @@ public class MainActivity extends AppCompatActivity
     /**
      * Drawer Navigation
      */
-
     @Override
     public boolean onNavigationItemSelected(@NonNull MenuItem item) {
         int id = item.getItemId();
@@ -171,6 +192,12 @@ public class MainActivity extends AppCompatActivity
         fragmentContainer.setVisibility(View.VISIBLE);
 
         getSupportFragmentManager().beginTransaction()
+                .setCustomAnimations(
+                        android.R.anim.fade_in,
+                        android.R.anim.fade_out,
+                        android.R.anim.fade_in,
+                        android.R.anim.fade_out
+                )
                 .replace(R.id.fragment_container, fragment)
                 .addToBackStack(null)
                 .commit();
@@ -189,23 +216,19 @@ public class MainActivity extends AppCompatActivity
     }
 
     private void updateToolbarForFragment() {
-        drawerToggle.setDrawerIndicatorEnabled(false);
-        if (getSupportActionBar() != null) {
-            getSupportActionBar().setDisplayHomeAsUpEnabled(true);
-        }
-        toolbar.setNavigationOnClickListener(v -> showHome());
+        navIcon.setImageResource(R.drawable.btn_back);
+        navIcon.setOnClickListener(v -> showHome());
     }
 
     private void updateToolbarForHome() {
-        drawerToggle.setDrawerIndicatorEnabled(true);
-        toolbar.setNavigationOnClickListener(v -> {
+        navIcon.setImageResource(R.drawable.btn_hamburger);
+        navIcon.setOnClickListener(v -> {
             if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
                 drawerLayout.closeDrawer(GravityCompat.START);
             } else {
                 drawerLayout.openDrawer(GravityCompat.START);
             }
         });
-        drawerToggle.syncState();
     }
 
     /**

@@ -4,10 +4,11 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/skyblue">
+    android:background="@color/skyblue"
+    android:gravity="center_horizontal">
 
     <TextView
-        android:layout_width="match_parent"
+        android:layout_width="600dp"
         android:layout_height="wrap_content"
         android:fontFamily="@font/pixel_font"
         android:padding="20dp"
@@ -17,19 +18,21 @@
         android:textStyle="bold" />
 
     <FrameLayout
-        android:layout_width="match_parent"
+        android:layout_width="600dp"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:padding="16dp">
+        android:paddingHorizontal="16dp"
+        android:paddingBottom="16dp">
 
         <!-- Saved List -->
         <ListView
             android:id="@+id/savedListView"
-            android:layout_width="match_parent"
+            android:layout_width="432dp"
             android:layout_height="match_parent"
+            android:layout_gravity="center"
+            android:clipToPadding="false"
             android:divider="@android:color/transparent"
-            android:dividerHeight="12dp"
-            android:clipToPadding="false" />
+            android:dividerHeight="12dp" />
 
         <TextView
             android:id="@+id/emptyTextView"

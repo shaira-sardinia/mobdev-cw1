@@ -67,6 +67,7 @@ public class CurrencyAdapterExpandable extends BaseAdapter {
             holder.currencyImage = convertView.findViewById(R.id.currencyImageView);
             holder.titleText = convertView.findViewById(R.id.titleTextView);
             holder.descriptionText = convertView.findViewById(R.id.descriptionTextView);
+            holder.pubDateText = convertView.findViewById(R.id.pubDateTextView);
             holder.expandedSection = convertView.findViewById(R.id.expandedSection);
             holder.saveButton = convertView.findViewById(R.id.saveButton);
             holder.convertButton = convertView.findViewById(R.id.convertButton);
@@ -82,13 +83,14 @@ public class CurrencyAdapterExpandable extends BaseAdapter {
         holder.titleText.setText(currentItem.getFormattedTitle());
         holder.descriptionText.setText(currentItem.getFormattedDescription());
         holder.descriptionText.setTextColor(currentItem.getRateColor());
+        holder.pubDateText.setText("Up to date as of: " + currentItem.getPubDate());
 
         /* Set flag image */
         int flagResourceId = currentItem.getFlagResourceId(context);
         if (flagResourceId != 0) {
             holder.currencyImage.setImageResource(flagResourceId);
         } else {
-            holder.currencyImage.setImageResource(android.R.drawable.ic_menu_gallery);
+            holder.currencyImage.setImageResource(R.drawable.unknown);
         }
 
        /* Handle expansion */
@@ -105,7 +107,11 @@ public class CurrencyAdapterExpandable extends BaseAdapter {
         });
 
         /* Save button click */
-        holder.saveButton.setText(isSavedPage ? "REMOVE" : "SAVE");
+        if (isSavedPage) {
+            holder.saveButton.setImageResource(R.drawable.btn_small_remove);
+        } else {
+            holder.saveButton.setImageResource(R.drawable.btn_small_save);
+        }
         holder.saveButton.setOnClickListener(v -> {
             if (listener != null) {
                 listener.onSaveClicked(currentItem);
@@ -128,11 +134,6 @@ public class CurrencyAdapterExpandable extends BaseAdapter {
         notifyDataSetChanged();
     }
 
-//    public void collapseAll() {
-//        expandedPosition = -1;
-//        notifyDataSetChanged();
-//    }
-
     public void setIsSavedPage(boolean isSavedPage) {
         this.isSavedPage = isSavedPage;
     }
@@ -142,8 +143,9 @@ public class CurrencyAdapterExpandable extends BaseAdapter {
         ImageView currencyImage;
         TextView titleText;
         TextView descriptionText;
+        TextView pubDateText;
         LinearLayout expandedSection;
-        Button saveButton;
-        Button convertButton;
+        ImageView saveButton;
+        ImageView convertButton;
     }
 }

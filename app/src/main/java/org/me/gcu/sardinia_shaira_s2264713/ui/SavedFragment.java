@@ -108,7 +108,7 @@ public class SavedFragment extends Fragment
     @Override
     public void onSaveClicked(CurrencyItem item) {
         viewModel.removeSavedCurrency(item.getTargetCurrencyCode());
-        ErrorHandler.showSaveSuccess(requireContext(), item.getTargetCurrencyCode());
+        ErrorHandler.showRemoveSuccess(requireContext(), item.getTargetCurrencyCode());
     }
 
     @Override

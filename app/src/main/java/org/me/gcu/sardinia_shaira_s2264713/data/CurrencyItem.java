@@ -2,6 +2,7 @@ package org.me.gcu.sardinia_shaira_s2264713.data;
 
 import android.annotation.SuppressLint;
 import android.graphics.Color;
+import android.util.Log;
 
 import androidx.annotation.NonNull;
 
@@ -9,6 +10,7 @@ import org.me.gcu.sardinia_shaira_s2264713.R;
 
 public class CurrencyItem {
 
+    private static final String TAG = "CurrencyItem";
     private String title;
     private String category;
     private String pubDate;
@@ -125,6 +127,10 @@ public class CurrencyItem {
                 }
             }
 
+            Log.d(TAG, "Original title: " + title);
+            Log.d(TAG, "Parsed sourceName: " + sourceCurrencyName);
+            Log.d(TAG, "Parsed targetName: " + targetCurrencyName);
+
             isParsed = true;
 
         } catch (Exception e) {
@@ -202,7 +208,7 @@ public class CurrencyItem {
         parseData();
         String lowerQuery = query.toLowerCase().trim();
 
-        // Check currency codes
+        /* Check currency codes */
         if (sourceCurrencyCode != null && sourceCurrencyCode.toLowerCase().contains(lowerQuery)) {
             return true;
         }
@@ -210,7 +216,7 @@ public class CurrencyItem {
             return true;
         }
 
-        // Check full currency names
+        /* Check full currency names */
         if (sourceCurrencyName != null && sourceCurrencyName.toLowerCase().contains(lowerQuery)) {
             return true;
         }
@@ -221,12 +227,12 @@ public class CurrencyItem {
         return false;
     }
 
-//    public String getSearchableString() {
-//        parseData();
-//        return String.format(
-//                sourceCurrencyCode, targetCurrencyCode,
-//                sourceCurrencyName, targetCurrencyName).toLowerCase();
-//    }
+    public String getSearchableString() {
+        parseData();
+        return String.format(
+                sourceCurrencyCode, targetCurrencyCode,
+                sourceCurrencyName, targetCurrencyName).toLowerCase();
+    }
 
     @NonNull
     @Override

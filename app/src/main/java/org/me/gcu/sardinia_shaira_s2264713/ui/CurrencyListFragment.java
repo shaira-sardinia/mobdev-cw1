@@ -33,7 +33,6 @@ public class CurrencyListFragment extends Fragment
     /* Views */
     private ListView listView;
     private EditText searchEditText;
-    private ProgressBar loadingSpinner;
 
     /* Data */
     private CurrencyAdapterExpandable adapter;
@@ -65,7 +64,6 @@ public class CurrencyListFragment extends Fragment
 
         listView = view.findViewById(R.id.currencyListView);
         searchEditText = view.findViewById(R.id.searchEditText);
-        loadingSpinner = view.findViewById(R.id.loading_spinner);
 
         return view;
     }
@@ -76,7 +74,7 @@ public class CurrencyListFragment extends Fragment
 
         setupListView();
         setupSearch();
-        observeLoadingState();
+//        observeLoadingState();
     }
 
     /**
@@ -85,7 +83,6 @@ public class CurrencyListFragment extends Fragment
     private void setupListView() {
         viewModel.getCurrencyList().observe(getViewLifecycleOwner(), currencyList -> {
             if (currencyList != null && !currencyList.isEmpty()) {
-                loadingSpinner.setVisibility(View.GONE);
                 listView.setVisibility(View.VISIBLE);
 
                 fullList.clear();
@@ -135,18 +132,6 @@ public class CurrencyListFragment extends Fragment
         if (adapter != null) {
             adapter.updateList(filteredList);
         }
-    }
-
-    private void observeLoadingState() {
-        viewModel.getIsLoading().observe(getViewLifecycleOwner(), isLoading -> {
-            if (isLoading && fullList.isEmpty()) {
-                loadingSpinner.setVisibility(View.VISIBLE);
-                listView.setVisibility(View.GONE);
-            } else {
-                loadingSpinner.setVisibility(View.GONE);
-                listView.setVisibility(View.VISIBLE);
-            }
-        });
     }
 
     /* Adapter callbacks */

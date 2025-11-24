@@ -17,6 +17,7 @@ import java.net.URLConnection;
 import java.util.ArrayList;
 
 public class CurrencyDataFetcher {
+    private static final String TAG = "CurrencyDataFetcher";
     private String urlSource;
     private DataFetchListener listener;
 
@@ -67,6 +68,7 @@ public class CurrencyDataFetcher {
         int start = xmlData.indexOf("<?");
         int end = xmlData.indexOf("</rss>") + 6;
 
+        Log.d(TAG, "DEBUGGING XML Data" + xmlData);
         return xmlData.substring(start, end);
     }
 

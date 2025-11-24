@@ -1,15 +1,13 @@
 package org.me.gcu.sardinia_shaira_s2264713.ui;
 
 import android.os.Bundle;
+import android.text.Editable;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Spinner;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -20,7 +18,6 @@ import androidx.lifecycle.ViewModelProvider;
 import org.me.gcu.sardinia_shaira_s2264713.R;
 import org.me.gcu.sardinia_shaira_s2264713.utils.CurrencyConverter;
 import org.me.gcu.sardinia_shaira_s2264713.data.CurrencyItem;
-import org.me.gcu.sardinia_shaira_s2264713.utils.ErrorHandler;
 import org.me.gcu.sardinia_shaira_s2264713.viewmodel.CurrencyViewModel;
 
 import java.util.ArrayList;
@@ -29,16 +26,18 @@ import java.util.Locale;
 public class CurrencyConversionFragment extends Fragment {
 
     private CurrencyViewModel viewModel;
-    private Spinner fromCurrencySpinner;
-    private Spinner toCurrencySpinner;
-    private EditText fromAmountEditText;
-    private EditText toAmountEditText;
-    private Button convertButton;
-    private ImageView swapButton;
-    private TextView exchangeRateTextView;
 
+    private TextView fromCurrencyCode;
+    private TextView fromCurrencyName;
+    private EditText fromAmountEditText;
+    private ImageView convertButton;
+    private TextView toAmountTextView;
+    private TextView toCurrencyCode;
+    private TextView toCurrencyName;
+
+    private String selectedFromCurrency = "GBP";
+    private String selectedToCurrency = "USD";
     private ArrayList<String> currencyCodes;
-    private boolean spinnersInitialized = false;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -52,13 +51,13 @@ public class CurrencyConversionFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_currency_conversion, container, false);
 
-        fromCurrencySpinner = view.findViewById(R.id.fromCurrencySpinner);
-        toCurrencySpinner = view.findViewById(R.id.toCurrencySpinner);
+        fromCurrencyCode = view.findViewById(R.id.fromCurrencyCode);
+        fromCurrencyName = view.findViewById(R.id.fromCurrencyName);
         fromAmountEditText = view.findViewById(R.id.fromAmountEditText);
-        toAmountEditText = view.findViewById(R.id.toAmountEditText);
         convertButton = view.findViewById(R.id.convertButton);
-        swapButton = view.findViewById(R.id.swapButton);
-        exchangeRateTextView = view.findViewById(R.id.exchangeRateTextView);
+        toAmountTextView = view.findViewById(R.id.toAmountTextView);
+        toCurrencyCode = view.findViewById(R.id.toCurrencyCode);
+        toCurrencyName = view.findViewById(R.id.toCurrencyName);
 
         return view;
     }
@@ -67,133 +66,127 @@ public class CurrencyConversionFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
 
-        setupSpinners();
+        setupCurrencyData();
         setupConvertButton();
-        setupSwapButton();
+        setupCurrencySelectors();
+        setupAmountInput();
+        checkForPreSelection();
     }
 
-    /**
-     * Set UI
-     */
-    private void setupSpinners() {
+    private void setupCurrencyData() {
         viewModel.getCurrencyList().observe(getViewLifecycleOwner(), currencyList -> {
             if (currencyList != null && !currencyList.isEmpty()) {
-
-                /* Setting spinners once */
-                if (!spinnersInitialized) {
-                    currencyCodes = CurrencyConverter.getAllCurrencyCodes(currencyList);
-
-                    ArrayAdapter<String> adapter = new ArrayAdapter<>(
-                            requireContext(),
-                            android.R.layout.simple_spinner_item,
-                            currencyCodes
-                    );
-                    adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-
-                    fromCurrencySpinner.setAdapter(adapter);
-                    toCurrencySpinner.setAdapter(adapter);
-
-                    setDefaultSelections();
-                    setupSpinnerListeners();
-                    checkForPreSelection();
-
-                    spinnersInitialized = true;
-                }
+                currencyCodes = CurrencyConverter.getAllCurrencyCodes(currencyList);
+                updateCurrencyDisplay();
             }
-        });
-    }
-
-    private void setDefaultSelections() {
-        int gbpPosition = currencyCodes.indexOf("GBP");
-        if (gbpPosition >= 0) {
-            fromCurrencySpinner.setSelection(gbpPosition);
-        }
-
-        int usdPosition = currencyCodes.indexOf("USD");
-        if (usdPosition >= 0) {
-            toCurrencySpinner.setSelection(usdPosition);
-        } else if (currencyCodes.size() > 1) {
-            toCurrencySpinner.setSelection(gbpPosition == 0 ? 1 : 0);
-        }
-    }
-
-    private void setupSpinnerListeners() {
-        fromCurrencySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                updateExchangeRate();
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
-        });
-
-        toCurrencySpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
-            @Override
-            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                updateExchangeRate();
-            }
-
-            @Override
-            public void onNothingSelected(AdapterView<?> parent) {}
         });
     }
 
     private void setupConvertButton() {
-        convertButton.setOnClickListener(v -> performConversion());
+        convertButton.setOnClickListener(v -> {
+
+            String tempCode = selectedFromCurrency;
+            selectedFromCurrency = selectedToCurrency;
+            selectedToCurrency = tempCode;
+
+            updateCurrencyDisplay();
+            performConversion();
+        });
     }
 
-    private void setupSwapButton() {
-        swapButton.setOnClickListener(v -> {
-            int fromPosition = fromCurrencySpinner.getSelectedItemPosition();
-            int toPosition = toCurrencySpinner.getSelectedItemPosition();
+    private void setupCurrencySelectors() {
+        fromCurrencyCode.setOnClickListener(v -> showCurrencyPicker(true));
+        fromCurrencyName.setOnClickListener(v -> showCurrencyPicker(true));
 
-            fromCurrencySpinner.setSelection(toPosition);
-            toCurrencySpinner.setSelection(fromPosition);
+        toCurrencyCode.setOnClickListener(v -> showCurrencyPicker(false));
+        toCurrencyName.setOnClickListener(v -> showCurrencyPicker(false));
+    }
 
-            String fromAmount = fromAmountEditText.getText().toString();
-            String toAmount = toAmountEditText.getText().toString();
+    private void setupAmountInput() {
+        fromAmountEditText.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
 
-            if (!fromAmount.isEmpty() && !toAmount.isEmpty()) {
-                fromAmountEditText.setText(toAmount);
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {}
+
+            @Override
+            public void afterTextChanged(Editable s) {
                 performConversion();
             }
         });
     }
 
+    private void showCurrencyPicker(boolean isFromCurrency) {
+        if (currencyCodes == null || currencyCodes.isEmpty()) return;
+
+        String[] codesArray = currencyCodes.toArray(new String[0]);
+
+        new androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle(isFromCurrency ? "Select From Currency" : "Select To Currency")
+                .setItems(codesArray, (dialog, which) -> {
+                    String selectedCode = codesArray[which];
+                    if (isFromCurrency) {
+                        selectedFromCurrency = selectedCode;
+                    } else {
+                        selectedToCurrency = selectedCode;
+                    }
+                    updateCurrencyDisplay();
+                    performConversion();
+                })
+                .show();
+    }
+
+    private void updateCurrencyDisplay() {
+        /* Update FROM display */
+        fromCurrencyCode.setText(selectedFromCurrency);
+        fromCurrencyName.setText(getCurrencyFullName(selectedFromCurrency));
+
+        /* Update TO display */
+        toCurrencyCode.setText(selectedToCurrency);
+        toCurrencyName.setText(getCurrencyFullName(selectedToCurrency));
+    }
+
+    private String getCurrencyFullName(String code) {
+        ArrayList<CurrencyItem> currencyList = viewModel.getCurrencyListValue();
+
+        if (currencyList != null && !currencyList.isEmpty()) {
+
+            CurrencyItem firstItem = currencyList.get(0);
+            if (firstItem.getSourceCurrencyCode() != null &&
+                    firstItem.getSourceCurrencyCode().equals(code)) {
+                return firstItem.getSourceCurrencyName();
+            }
+
+            for (CurrencyItem item : currencyList) {
+                if (item.getTargetCurrencyCode() != null &&
+                        item.getTargetCurrencyCode().equals(code)) {
+                    return item.getTargetCurrencyName();
+                }
+            }
+        }
+
+        return code;
+    }
+
     private void checkForPreSelection() {
         String preSelectedCode = viewModel.getPreSelectedCurrencyValue();
 
-        if (preSelectedCode != null && currencyCodes != null) {
-            /* Set FROM to GBP */
-            int gbpPosition = currencyCodes.indexOf("GBP");
-            if (gbpPosition >= 0) {
-                fromCurrencySpinner.setSelection(gbpPosition);
-            }
+        if (preSelectedCode != null) {
+            selectedFromCurrency = "GBP";
+            selectedToCurrency = preSelectedCode;
 
-            /* Set TO to pre-selected currency */
-            int toPosition = currencyCodes.indexOf(preSelectedCode);
-            if (toPosition >= 0) {
-                toCurrencySpinner.setSelection(toPosition);
-            }
-
-            /* Clear preselection */
+            updateCurrencyDisplay();
             viewModel.clearPreSelection();
-
-            updateExchangeRate();
         }
     }
 
-    /**
-     * Conversion
-     */
     private void performConversion() {
-        String fromCurrency = (String) fromCurrencySpinner.getSelectedItem();
-        String toCurrency = (String) toCurrencySpinner.getSelectedItem();
-        String amountStr = fromAmountEditText.getText().toString();
+        String amountStr = fromAmountEditText.getText().toString()
+                .replace(",", "");
 
         if (amountStr.isEmpty()) {
-            toAmountEditText.setText("");
+            toAmountTextView.setText("0");
             return;
         }
 
@@ -202,41 +195,21 @@ public class CurrencyConversionFragment extends Fragment {
             ArrayList<CurrencyItem> currencyList = viewModel.getCurrencyListValue();
 
             if (amount < 0) {
-                ErrorHandler.showConversionError(requireContext());
+                toAmountTextView.setText("0");
                 return;
             }
 
             double result = CurrencyConverter.convert(
-                    fromCurrency,
-                    toCurrency,
+                    selectedFromCurrency,
+                    selectedToCurrency,
                     amount,
                     currencyList
             );
-            toAmountEditText.setText(String.format(Locale.US, "%.2f", result));
+
+            toAmountTextView.setText(String.format(Locale.US, "%,.0f", result));
 
         } catch (NumberFormatException e) {
-            ErrorHandler.showConversionError(requireContext());
-            toAmountEditText.setText("");
-        }
-    }
-
-    private void updateExchangeRate() {
-        String fromCurrency = (String) fromCurrencySpinner.getSelectedItem();
-        String toCurrency = (String) toCurrencySpinner.getSelectedItem();
-
-        if (fromCurrency == null || toCurrency == null) {
-            return;
-        }
-
-        ArrayList<CurrencyItem> currencyList = viewModel.getCurrencyListValue();
-        double rate = CurrencyConverter.getExchangeRate(fromCurrency, toCurrency, currencyList);
-
-        if (rate > 0) {
-            exchangeRateTextView.setText(
-                    String.format(Locale.US, "1 %s = %.4f %s", fromCurrency, rate, toCurrency)
-            );
-        } else {
-            exchangeRateTextView.setText("");
+            toAmountTextView.setText("0");
         }
     }
 }
