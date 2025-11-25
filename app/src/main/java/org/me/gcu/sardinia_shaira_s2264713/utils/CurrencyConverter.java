@@ -28,7 +28,6 @@ public class CurrencyConverter {
     public static double convert(String fromCurrencyCode, String toCurrencyCode,
                                  double amount, ArrayList<CurrencyItem> currencyList) {
 
-        // validation
         if (amount < 0 || currencyList == null || currencyList.isEmpty()) {
             return 0;
         }
@@ -84,35 +83,6 @@ public class CurrencyConverter {
         return convertFromGBP(toCurrencyCode, amountInGBP, currencyList);
     }
 
-    /* Format conversion result as a readable string */
-    public static String formatConversionResult(String fromCode, String toCode,
-                                                double fromAmount, double toAmount) {
-        return String.format(Locale.US, "%.2f %s = %.2f %s",
-                fromAmount, fromCode, toAmount, toCode);
-    }
-
-    /* Format result amount with currency code */
-    public static String formatAmount(double amount, String currencyCode) {
-        return String.format(Locale.US, "%.2f %s", amount, currencyCode);
-    }
-
-    /* Get exchange rate between two currencies */
-    public static double getExchangeRate(String fromCurrencyCode, String toCurrencyCode,
-                                         ArrayList<CurrencyItem> currencyList) {
-        if (fromCurrencyCode != null && fromCurrencyCode.equalsIgnoreCase(toCurrencyCode)) {
-            return 1.0;
-        }
-        return convert(fromCurrencyCode, toCurrencyCode, 1.0, currencyList);
-    }
-
-    /* Validate if a currency code exists in list */
-    public static boolean isValidCurrency(String currencyCode, ArrayList<CurrencyItem> currencyList) {
-        if ("GBP".equalsIgnoreCase(currencyCode)) {
-            return true;
-        }
-        return findCurrencyByCode(currencyCode, currencyList) != null;
-    }
-
     /* Get all available currency codes from list */
     public static ArrayList<String> getAllCurrencyCodes(ArrayList<CurrencyItem> currencyList) {
         ArrayList<String> codes = new ArrayList<>();
@@ -130,4 +100,33 @@ public class CurrencyConverter {
 
         return codes;
     }
+
+//    /* Format conversion result as a readable string */
+//    public static String formatConversionResult(String fromCode, String toCode,
+//                                                double fromAmount, double toAmount) {
+//        return String.format(Locale.US, "%.2f %s = %.2f %s",
+//                fromAmount, fromCode, toAmount, toCode);
+//    }
+//
+//    /* Format result amount with currency code */
+//    public static String formatAmount(double amount, String currencyCode) {
+//        return String.format(Locale.US, "%.2f %s", amount, currencyCode);
+//    }
+//
+//    /* Get exchange rate between two currencies */
+//    public static double getExchangeRate(String fromCurrencyCode, String toCurrencyCode,
+//                                         ArrayList<CurrencyItem> currencyList) {
+//        if (fromCurrencyCode != null && fromCurrencyCode.equalsIgnoreCase(toCurrencyCode)) {
+//            return 1.0;
+//        }
+//        return convert(fromCurrencyCode, toCurrencyCode, 1.0, currencyList);
+//    }
+//
+//    /* Validate if a currency code exists in list */
+//    public static boolean isValidCurrency(String currencyCode, ArrayList<CurrencyItem> currencyList) {
+//        if ("GBP".equalsIgnoreCase(currencyCode)) {
+//            return true;
+//        }
+//        return findCurrencyByCode(currencyCode, currencyList) != null;
+//    }
 }

@@ -228,12 +228,12 @@ public class CurrencyItem {
         return false;
     }
 
-    public String getSearchableString() {
-        parseData();
-        return String.format(
-                sourceCurrencyCode, targetCurrencyCode,
-                sourceCurrencyName, targetCurrencyName).toLowerCase();
-    }
+//    public String getSearchableString() {
+//        parseData();
+//        return String.format(
+//                sourceCurrencyCode, targetCurrencyCode,
+//                sourceCurrencyName, targetCurrencyName).toLowerCase();
+//    }
 
     @NonNull
     @Override
