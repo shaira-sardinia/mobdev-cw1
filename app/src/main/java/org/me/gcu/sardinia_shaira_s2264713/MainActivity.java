@@ -51,6 +51,12 @@ public class MainActivity extends AppCompatActivity
     private CurrencyAdapter previewAdapter;
 
     @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean("isFragmentVisible", fragmentContainer.getVisibility() == View.VISIBLE);
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
@@ -65,8 +71,16 @@ public class MainActivity extends AppCompatActivity
         observeErrors();
         setupBackHandler();
         updateToolbarForHome();
-
         viewModel.startInitialFetchAndAutoUpdate();
+
+        if (savedInstanceState != null) {
+            boolean wasFragmentVisible = savedInstanceState.getBoolean("isFragmentVisible", false);
+            if (wasFragmentVisible) {
+                homeLayout.setVisibility(View.GONE);
+                fragmentContainer.setVisibility(View.VISIBLE);
+                updateToolbarForFragment();
+            }
+        }
     }
 
     private void initializeViews() {
@@ -245,7 +259,12 @@ public class MainActivity extends AppCompatActivity
 
     @Override
     public void onOpenConversionPage() {
-        onOpenConversionPage(null);
+        viewModel.setSelectedFromCurrency("GBP");
+        viewModel.setSelectedToCurrency("USD");
+        viewModel.setEnteredAmount("");
+        viewModel.clearPreSelection();
+
+        navigateToFragment(new CurrencyConversionFragment());
     }
 
     /**

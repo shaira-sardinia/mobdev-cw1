@@ -14,6 +14,7 @@ import android.widget.ProgressBar;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModelProvider;
 
 import org.me.gcu.sardinia_shaira_s2264713.FragmentNavigationListener;
@@ -74,7 +75,11 @@ public class CurrencyListFragment extends Fragment
 
         setupListView();
         setupSearch();
-//        observeLoadingState();
+
+        String savedQuery = viewModel.getSearchQuery().getValue();
+        if (savedQuery != null && !savedQuery.isEmpty()) {
+            searchEditText.setText(savedQuery);
+        }
     }
 
     /**

@@ -35,8 +35,8 @@ public class CurrencyConversionFragment extends Fragment {
     private TextView toCurrencyCode;
     private TextView toCurrencyName;
 
-    private String selectedFromCurrency = "GBP";
-    private String selectedToCurrency = "USD";
+//    private String selectedFromCurrency = "GBP";
+//    private String selectedToCurrency = "USD";
     private ArrayList<String> currencyCodes;
 
     @Override
@@ -71,6 +71,13 @@ public class CurrencyConversionFragment extends Fragment {
         setupCurrencySelectors();
         setupAmountInput();
         checkForPreSelection();
+
+        String savedAmount = viewModel.getEnteredAmount().getValue();
+        if (savedAmount != null && !savedAmount.isEmpty()) {
+            fromAmountEditText.setText(savedAmount);
+        }
+
+        updateCurrencyDisplay();
     }
 
     private void setupCurrencyData() {
@@ -84,10 +91,9 @@ public class CurrencyConversionFragment extends Fragment {
 
     private void setupConvertButton() {
         convertButton.setOnClickListener(v -> {
-
-            String tempCode = selectedFromCurrency;
-            selectedFromCurrency = selectedToCurrency;
-            selectedToCurrency = tempCode;
+            String tempCode = viewModel.getSelectedFromCurrency().getValue();
+            viewModel.setSelectedFromCurrency(viewModel.getSelectedToCurrency().getValue());
+            viewModel.setSelectedToCurrency(tempCode);
 
             updateCurrencyDisplay();
             performConversion();
@@ -112,6 +118,7 @@ public class CurrencyConversionFragment extends Fragment {
 
             @Override
             public void afterTextChanged(Editable s) {
+                viewModel.setEnteredAmount(s.toString());
                 performConversion();
             }
         });
@@ -127,9 +134,9 @@ public class CurrencyConversionFragment extends Fragment {
                 .setItems(codesArray, (dialog, which) -> {
                     String selectedCode = codesArray[which];
                     if (isFromCurrency) {
-                        selectedFromCurrency = selectedCode;
+                        viewModel.setSelectedFromCurrency(selectedCode);
                     } else {
-                        selectedToCurrency = selectedCode;
+                        viewModel.setSelectedToCurrency(selectedCode);
                     }
                     updateCurrencyDisplay();
                     performConversion();
@@ -138,13 +145,18 @@ public class CurrencyConversionFragment extends Fragment {
     }
 
     private void updateCurrencyDisplay() {
-        /* Update FROM display */
-        fromCurrencyCode.setText(selectedFromCurrency);
-        fromCurrencyName.setText(getCurrencyFullName(selectedFromCurrency));
+        String fromCurrency = viewModel.getSelectedFromCurrency().getValue();
+        String toCurrency = viewModel.getSelectedToCurrency().getValue();
 
-        /* Update TO display */
-        toCurrencyCode.setText(selectedToCurrency);
-        toCurrencyName.setText(getCurrencyFullName(selectedToCurrency));
+        if (fromCurrency != null) {
+            fromCurrencyCode.setText(fromCurrency);
+            fromCurrencyName.setText(getCurrencyFullName(fromCurrency));
+        }
+
+        if (toCurrency != null) {
+            toCurrencyCode.setText(toCurrency);
+            toCurrencyName.setText(getCurrencyFullName(toCurrency));
+        }
     }
 
     private String getCurrencyFullName(String code) {
@@ -173,8 +185,8 @@ public class CurrencyConversionFragment extends Fragment {
         String preSelectedCode = viewModel.getPreSelectedCurrencyValue();
 
         if (preSelectedCode != null) {
-            selectedFromCurrency = "GBP";
-            selectedToCurrency = preSelectedCode;
+            viewModel.setSelectedFromCurrency("GBP");
+            viewModel.setSelectedToCurrency(preSelectedCode);
 
             updateCurrencyDisplay();
             viewModel.clearPreSelection();
@@ -199,14 +211,17 @@ public class CurrencyConversionFragment extends Fragment {
                 return;
             }
 
+            String fromCurrency = viewModel.getSelectedFromCurrency().getValue();
+            String toCurrency = viewModel.getSelectedToCurrency().getValue();
+
             double result = CurrencyConverter.convert(
-                    selectedFromCurrency,
-                    selectedToCurrency,
+                    fromCurrency,
+                    toCurrency,
                     amount,
                     currencyList
             );
 
-            toAmountTextView.setText(String.format(Locale.US, "%,.0f", result));
+            toAmountTextView.setText(String.format(Locale.US, "%,.2f", result));
 
         } catch (NumberFormatException e) {
             toAmountTextView.setText("0");

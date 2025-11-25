@@ -130,6 +130,7 @@ public class CurrencyItem {
             Log.d(TAG, "Original title: " + title);
             Log.d(TAG, "Parsed sourceName: " + sourceCurrencyName);
             Log.d(TAG, "Parsed targetName: " + targetCurrencyName);
+            Log.d(TAG, "Exchange rate: " + exchangeRate);
 
             isParsed = true;
 

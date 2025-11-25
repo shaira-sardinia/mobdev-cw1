@@ -27,6 +27,10 @@ public class CurrencyViewModel extends ViewModel implements CurrencyDataFetcher.
     private final MutableLiveData<String> errorMessage;
     private final MutableLiveData<ArrayList<String>> savedCurrencyCodes = new MutableLiveData<>(new ArrayList<>());
     private static final String[] PREVIEW_CURRENCY_CODES = {"USD", "EUR", "JPY"};
+    private final MutableLiveData<String> selectedFromCurrency = new MutableLiveData<>("GBP");
+    private final MutableLiveData<String> selectedToCurrency = new MutableLiveData<>("USD");
+    private final MutableLiveData<String> enteredAmount = new MutableLiveData<>("");
+    private final MutableLiveData<String> searchQuery = new MutableLiveData<>("");
 
 
     public CurrencyViewModel() {
@@ -67,6 +71,14 @@ public class CurrencyViewModel extends ViewModel implements CurrencyDataFetcher.
         return errorMessage;
     }
 
+    public LiveData<String> getSearchQuery() {
+        return searchQuery;
+    }
+
+    public void setSearchQuery(String query) {
+        searchQuery.postValue(query);
+    }
+
     public LiveData<Boolean> getIsLoading() {
         return isLoading;
     }
@@ -93,6 +105,30 @@ public class CurrencyViewModel extends ViewModel implements CurrencyDataFetcher.
 
     public void setErrorMessage(String message) {
         errorMessage.postValue(message);
+    }
+
+    public LiveData<String> getSelectedFromCurrency() {
+        return selectedFromCurrency;
+    }
+
+    public void setSelectedFromCurrency(String currency) {
+        selectedFromCurrency.setValue(currency);
+    }
+
+    public LiveData<String> getSelectedToCurrency() {
+        return selectedToCurrency;
+    }
+
+    public void setSelectedToCurrency(String currency) {
+        selectedToCurrency.setValue(currency);
+    }
+
+    public LiveData<String> getEnteredAmount() {
+        return enteredAmount;
+    }
+
+    public void setEnteredAmount(String amount) {
+        enteredAmount.setValue(amount);
     }
 
     public void clearError() {
