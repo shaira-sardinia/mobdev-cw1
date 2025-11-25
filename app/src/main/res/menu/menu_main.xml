@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <!-- Home / Currency List -->
+    <item
+        android:id="@+id/action_home"
+        android:title="Home"
+        android:icon="@android:drawable/ic_menu_view"
+        app:showAsAction="ifRoom" />
+
+    <!-- Currency Converter -->
+    <item
+        android:id="@+id/action_converter"
+        android:title="Converter"
+        app:showAsAction="ifRoom" />
+
+    <!-- Search (optional) -->
+    <item
+        android:id="@+id/action_search"
+        android:title="Search"
+        android:icon="@android:drawable/ic_menu_search"
+        app:showAsAction="ifRoom" />
+
+</menu>

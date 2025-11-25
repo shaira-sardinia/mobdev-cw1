@@ -1,198 +1,302 @@
-/*  Starter project for Mobile Platform Development - 1st diet 25/26
-    You should use this project as the starting point for your assignment.
-    This project simply reads the data from the required URL and displays the
-    raw data in a TextField
-*/
-
-//
-// Name                 Shaira Sardinia
-// Student ID           S2264713
-// Programme of Study   BSc (Hons) Software Development (GA)
-//
-
 package org.me.gcu.sardinia_shaira_s2264713;
 
+import org.me.gcu.sardinia_shaira_s2264713.ui.CurrencyAdapter;
+import org.me.gcu.sardinia_shaira_s2264713.ui.CurrencyConversionFragment;
+import org.me.gcu.sardinia_shaira_s2264713.ui.CurrencyListFragment;
+import org.me.gcu.sardinia_shaira_s2264713.ui.SavedFragment;
+import org.me.gcu.sardinia_shaira_s2264713.utils.ErrorHandler;
+import org.me.gcu.sardinia_shaira_s2264713.viewmodel.CurrencyViewModel;
+
 import android.os.Bundle;
-import android.util.Log;
+import android.os.Handler;
+import android.os.Looper;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
-import android.view.View.OnClickListener;
+import android.widget.ImageView;
+import android.widget.ListView;
+
+import androidx.activity.OnBackPressedCallback;
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.GravityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.lifecycle.ViewModelProvider;
 
-import org.xmlpull.v1.XmlPullParser;
-import org.xmlpull.v1.XmlPullParserException;
-import org.xmlpull.v1.XmlPullParserFactory;
+import com.google.android.material.navigation.NavigationView;
 
-import java.io.BufferedReader;
-import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.StringReader;
-import java.net.URL;
-import java.net.URLConnection;
-import java.util.ArrayList;
+public class MainActivity extends AppCompatActivity
+        implements FragmentNavigationListener, NavigationView.OnNavigationItemSelectedListener {
 
-public class MainActivity extends AppCompatActivity implements OnClickListener {
-    private TextView rawDataDisplay;
-    private Button startButton;
-    private String result;
-    private String url1="";
-    private String urlSource="https://www.fx-exchange.com/gbp/rss.xml";
-    private ArrayList<CurrencyItem> currencyList;
+    private static final String TAG = "MainActivity";
+    private CurrencyViewModel viewModel;
 
-    private CurrencyItem currencyItem;
+    /* Drawer */
+    private DrawerLayout drawerLayout;
+    private NavigationView navigationView;
+    private Toolbar toolbar;
+    private ActionBarDrawerToggle drawerToggle;
+
+    /* Views */
+    private View homeLayout;
+    private View fragmentContainer;
+    private ListView previewListView;
+    private ImageView viewAllButton;
+    private ImageView viewSavedButton;
+    private ImageView convertButton;
+    private ImageView navIcon;
+
+    private CurrencyAdapter previewAdapter;
+
+    @Override
+    protected void onSaveInstanceState(@NonNull Bundle outState) {
+        super.onSaveInstanceState(outState);
+        outState.putBoolean("isFragmentVisible", fragmentContainer.getVisibility() == View.VISIBLE);
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        // Set up the raw links to the graphical components
-        rawDataDisplay = (TextView)findViewById(R.id.rawDataDisplay);
-        startButton = (Button)findViewById(R.id.startButton);
-        startButton.setOnClickListener(this);
+        viewModel = new ViewModelProvider(this).get(CurrencyViewModel.class);
 
-        // More Code goes here
-        currencyList = new ArrayList<CurrencyItem>();
+        initializeViews();
+        setupToolbar();
+        setupDrawer();
+        setupButtons();
+        observeData();
+        observeErrors();
+        setupBackHandler();
+        updateToolbarForHome();
+        viewModel.startInitialFetchAndAutoUpdate();
 
-
+        if (savedInstanceState != null) {
+            boolean wasFragmentVisible = savedInstanceState.getBoolean("isFragmentVisible", false);
+            if (wasFragmentVisible) {
+                homeLayout.setVisibility(View.GONE);
+                fragmentContainer.setVisibility(View.VISIBLE);
+                updateToolbarForFragment();
+            }
+        }
     }
 
-    public void onClick(View aview)
-    {
-        startProgress();
+    private void initializeViews() {
+        drawerLayout = findViewById(R.id.drawerLayout);
+        navigationView = findViewById(R.id.navigationView);
+        toolbar = findViewById(R.id.toolbar);
+        homeLayout = findViewById(R.id.homeLayout);
+        fragmentContainer = findViewById(R.id.fragment_container);
+        previewListView = findViewById(R.id.previewListView);
+        viewAllButton = findViewById(R.id.viewAllButton);
+        viewSavedButton = findViewById(R.id.viewSavedButton);
+        convertButton = findViewById(R.id.convertButton);
+        navIcon = findViewById(R.id.nav_icon);
     }
 
-    public void startProgress()
-    {
-        // Run network access on a separate thread;
-        new Thread(new Task(urlSource)).start();
-    } //
-
-    // Need separate thread to access the internet resource over network
-    // Other neater solutions should be adopted in later iterations.
-    private class Task implements Runnable
-    {
-        private String url;
-        public Task(String aurl){
-            url = aurl;
+    private void setupToolbar() {
+        setSupportActionBar(toolbar);
+        if (getSupportActionBar() != null) {
+            getSupportActionBar().setDisplayShowTitleEnabled(false);
+            getSupportActionBar().setDisplayHomeAsUpEnabled(false);
         }
-        @Override
-        public void run(){
-            URL aurl;
-            URLConnection yc;
-            BufferedReader in = null;
-            String inputLine = "";
+    }
 
+    private void setupDrawer() {
+        drawerToggle = new ActionBarDrawerToggle(
+                this,
+                drawerLayout,
+                toolbar,
+                R.string.drawer_open,
+                R.string.drawer_close
+        );
+        drawerLayout.addDrawerListener(drawerToggle);
+        drawerToggle.setDrawerIndicatorEnabled(false);
+        drawerToggle.syncState();
 
-            Log.d("MyTask","in run");
+        navigationView.setNavigationItemSelectedListener(this);
+    }
 
-            try
-            {
-                Log.d("MyTask","in try");
-                aurl = new URL(url);
-                yc = aurl.openConnection();
-                in = new BufferedReader(new InputStreamReader(yc.getInputStream()));
-                while ((inputLine = in.readLine()) != null){
-                    result = result + inputLine;
-                }
-                in.close();
+    private void setupButtons() {
+        viewAllButton.setOnClickListener(v -> {
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                navigateToFragment(new CurrencyListFragment());
+            }, 200);
+        });
+
+        viewSavedButton.setOnClickListener(v -> {
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                navigateToFragment(new SavedFragment());
+            }, 200);
+        });
+
+        convertButton.setOnClickListener(v -> {
+            new Handler(Looper.getMainLooper()).postDelayed(() -> {
+                onOpenConversionPage();
+            }, 200);
+        });
+    }
+
+    private void observeData() {
+        viewModel.getCurrencyList().observe(this, currencyList -> {
+            if (currencyList != null && !currencyList.isEmpty()) {
+                updatePreviewList();
             }
-            catch (IOException ae) {
-                Log.e("MyTask", "ioexception");
-            }
+        });
+    }
 
-            //Clean up any leading garbage characters
-            int i = result.indexOf("<?"); //initial tag
-            result = result.substring(i);
-
-            //Clean up any trailing garbage at the end of the file
-            i = result.indexOf("</rss>"); //final tag
-            result = result.substring(0, i + 6);
-
-            // Now that you have the xml data into result, you can parse it
-            try {
-                boolean insideItem = false;
-
-                XmlPullParserFactory factory =
-                        XmlPullParserFactory.newInstance();
-                factory.setNamespaceAware(true);
-                XmlPullParser xpp = factory.newPullParser();
-                xpp.setInput( new StringReader( result ) );
-                int eventType = xpp.getEventType();
-
-//              PARSING HERE!!!
-
-                while (eventType != XmlPullParser.END_DOCUMENT) {
-                    if (eventType == XmlPullParser.START_DOCUMENT) {
-                        Log.d("PullParser", "Start of document");
-                    } else if (eventType == XmlPullParser.START_TAG) {
-                        if (xpp.getName().equalsIgnoreCase("item")) {
-                            Log.d("Item", "Currency Item found!");
-                            currencyItem = new CurrencyItem();
-                            insideItem = true;
-                        }
-                        else if (xpp.getName().equalsIgnoreCase("title")) {
-                            String temp = xpp.nextText();
-
-                            if (insideItem) {
-                                Log.d("title", "Currencies: " + temp);
-                                currencyItem.setTitle(temp);
-                            } else {
-                                Log.d("Other Title", "This is some other title: " + temp);
-                            }
-                        }
-                        else if (xpp.getName().equalsIgnoreCase("category")) {
-                            String temp = xpp.nextText();
-                            Log.d("title", "Category: " + temp);
-                            currencyItem.setCategory(temp);
-                        }
-                        else if (xpp.getName().equalsIgnoreCase("pubDate")) {
-                            String temp = xpp.nextText();
-                            Log.d("pubDate", "Last updated at: " + temp);
-                            currencyItem.setPubDate(temp);
-                        }
-                        else if (xpp.getName().equalsIgnoreCase("description")) {
-                            String temp = xpp.nextText();
-
-                            if (insideItem) {
-                                Log.d("description", "Description: " + temp);
-                                currencyItem.setDescription(temp);
-                            } else {
-                                Log.d("Other Description", "This is some other description: " + temp);
-                            }
-                        }
-                    }
-                    else if (eventType == XmlPullParser.END_TAG)
-                    {
-                        if (xpp.getName().equalsIgnoreCase("item"))
-                        {
-                            currencyList.add(currencyItem);
-                            insideItem = false;
-                            Log.d("Item","Item parsing completed! Added: " + currencyItem.toString());
-                        }
-                    }
-                    eventType = xpp.next();
+    private void observeErrors() {
+        viewModel.getErrorMessage().observe(this, error -> {
+            if (error != null && !error.isEmpty()) {
+                switch (error) {
+                    case "NETWORK_ERROR":
+                        ErrorHandler.showNetworkError(this);
+                        break;
+                    case "DATA_ERROR":
+                        ErrorHandler.showDataError(this);
+                        break;
+                    default:
+                        ErrorHandler.showGenericError(this);
+                        break;
                 }
-            } catch (XmlPullParserException e) {
-                Log.e("Parsing","EXCEPTION" + e);
-                throw new RuntimeException(e);
-            } catch (IOException e) {
-                Log.e("Parsing","I/O EXCEPTION" + e);
-                throw new RuntimeException(e);
+                viewModel.clearError();
             }
+        });
+    }
 
-            // Now update the TextView to display raw XML data
-            // Probably not the best way to update TextView
-            // but we are just getting started !
+    private void updatePreviewList() {
+        var previewCurrencies = viewModel.getPreviewCurrencies();
 
-            MainActivity.this.runOnUiThread(new Runnable()
-            {
-                public void run() {
-                    Log.d("UI thread", "I am the UI thread");
-                    rawDataDisplay.setText(result);
-                }
-            });
+        if (previewAdapter == null) {
+            previewAdapter = new CurrencyAdapter(this, previewCurrencies);
+            previewListView.setAdapter(previewAdapter);
+        } else {
+            previewAdapter.notifyDataSetChanged();
         }
+    }
+
+    /**
+     * Drawer Navigation
+     */
+    @Override
+    public boolean onNavigationItemSelected(@NonNull MenuItem item) {
+        int id = item.getItemId();
+
+        if (id == R.id.nav_home) {
+            showHome();
+        } else if (id == R.id.nav_view_all) {
+            navigateToFragment(new CurrencyListFragment());
+        } else if (id == R.id.nav_convert) {
+            onOpenConversionPage();
+        } else if (id == R.id.nav_saved) {
+            navigateToFragment(new SavedFragment());
+        }
+
+        drawerLayout.closeDrawer(GravityCompat.START);
+        return true;
+    }
+
+    /**
+     * Fragment Navigation
+     */
+    private void navigateToFragment(androidx.fragment.app.Fragment fragment) {
+        homeLayout.setVisibility(View.GONE);
+        fragmentContainer.setVisibility(View.VISIBLE);
+
+        getSupportFragmentManager().beginTransaction()
+                .setCustomAnimations(
+                        android.R.anim.fade_in,
+                        android.R.anim.fade_out,
+                        android.R.anim.fade_in,
+                        android.R.anim.fade_out
+                )
+                .replace(R.id.fragment_container, fragment)
+                .addToBackStack(null)
+                .commit();
+
+        updateToolbarForFragment();
+    }
+
+    private void showHome() {
+        getSupportFragmentManager().popBackStack(null,
+                androidx.fragment.app.FragmentManager.POP_BACK_STACK_INCLUSIVE);
+
+        homeLayout.setVisibility(View.VISIBLE);
+        fragmentContainer.setVisibility(View.GONE);
+
+        updateToolbarForHome();
+    }
+
+    private void updateToolbarForFragment() {
+        navIcon.setImageResource(R.drawable.btn_back);
+        navIcon.setOnClickListener(v -> showHome());
+    }
+
+    private void updateToolbarForHome() {
+        navIcon.setImageResource(R.drawable.btn_hamburger);
+        navIcon.setOnClickListener(v -> {
+            if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                drawerLayout.closeDrawer(GravityCompat.START);
+            } else {
+                drawerLayout.openDrawer(GravityCompat.START);
+            }
+        });
+    }
+
+    /**
+     * Interface implementation
+     */
+
+    @Override
+    public void onOpenConversionPage(String preSelectedCurrency) {
+        if (preSelectedCurrency != null) {
+            viewModel.setPreSelectedCurrency(preSelectedCurrency);
+        }
+        navigateToFragment(new CurrencyConversionFragment());
+    }
+
+    @Override
+    public void onOpenConversionPage() {
+        viewModel.setSelectedFromCurrency("GBP");
+        viewModel.setSelectedToCurrency("USD");
+        viewModel.setEnteredAmount("");
+        viewModel.clearPreSelection();
+
+        navigateToFragment(new CurrencyConversionFragment());
+    }
+
+    /**
+     * Back button
+     */
+    private void setupBackHandler() {
+        getOnBackPressedDispatcher().addCallback(this, new OnBackPressedCallback(true) {
+            @Override
+            public void handleOnBackPressed() {
+                if (drawerLayout.isDrawerOpen(GravityCompat.START)) {
+                    drawerLayout.closeDrawer(GravityCompat.START);
+                } else if (fragmentContainer.getVisibility() == View.VISIBLE) {
+                    showHome();
+                } else {
+                    finish();
+                }
+            }
+        });
+    }
+
+    /**
+     * Life Cycle
+     */
+    @Override
+    protected void onPause() {
+        super.onPause();
+        viewModel.stopAutoUpdate();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        viewModel.resumeAutoUpdate();
     }
 }
